@@ -1,25 +1,24 @@
-import logo from './logo.svg';
-import './App.css';
+import React from 'react';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import LandingPage from './Components/LandingPage';
+import SpeechText from './Components/SpeechText';
+import SpeechTranslation from './Components/SpeechTranslation';
+import TextTranslation from './Components/TextTranslation';
+import TextSpeech from './Components/TextSpeech';
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
-}
+
+const App = () => {
+    return (
+        <Router>
+            <Routes>
+                <Route path="/" element={<LandingPage />} />
+                <Route path="/speechtext" element={<SpeechText />} />
+                <Route path="/speechtranslation" element={<SpeechTranslation />} />
+                <Route path="/textspeech" element={<TextSpeech />} />
+                <Route path="/texttranslation" element={<TextTranslation />} />
+            </Routes>
+        </Router>
+    );
+};
 
 export default App;

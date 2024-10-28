@@ -1,0 +1,19 @@
+.listening {
+    animation: pulse 0.5s infinite; /* Apply pulse animation when listening */
+  }
+  
+  @keyframes pulse {
+    0% {
+      transform: scale(1); /* Initial scale */
+      color: #3f51b5; /* Initial color */
+    }
+    50% {
+      transform: scale(1.2); /* Scale up */
+      color: #f50057; /* Change color during pulse */
+    }
+    100% {
+      transform: scale(1); /* Scale back */
+      color: #3f51b5; /* Return to initial color */
+    }
+  }
+  
