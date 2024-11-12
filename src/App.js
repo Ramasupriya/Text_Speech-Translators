@@ -5,7 +5,7 @@ import SpeechText from './Components/SpeechText';
 import SpeechTranslation from './Components/SpeechTranslation';
 import TextTranslation from './Components/TextTranslation';
 import TextSpeech from './Components/TextSpeech';
-
+import './App.css';
 
 const App = () => {
     return (

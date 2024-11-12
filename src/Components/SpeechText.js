@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState } from "react";
 import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';
 import Toolbar from '@mui/material/Toolbar';
@@ -9,40 +9,120 @@ import MicIcon from '@mui/icons-material/Mic';
 import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognition';
 import './SpeechText.css';
 
-// Ensure to import your CSS file
-
 const SpeechText = () => {
+  const commands = [
+    {
+      command: "open *",
+      callback: (website) => {
+        window.open("http://" + website.split(" ").join(""));
+      },
+    },
+    {
+      command: 'change background colour to *', 
+      callback: (color) => {
+        document.body.style.background = color;
+      },
+    },
+    {
+      command: /reset*/,
+      callback: () => {
+        handleReset();
+      },
+    },
+    {
+      command: "reset background colour",
+      callback: () => {
+        document.body.style.background = `rgba(0, 0, 0, 0.8)`;
+      },
+    },
+    {
+      command: "clear screen",
+      callback: () => {
+        resetTranscript();
+      },
+    },
+    {
+      command: 'change language to *', 
+      callback: (lang) => {
+        switch(lang.toLowerCase()){
+          case 'english': setLanguage("en-US"); break;
+          case 'telugu': setLanguage("te-IN"); break;
+          case 'hindi': setLanguage("hi-IN"); break;
+          case 'spanish': setLanguage("es-ES"); break;
+          case 'french': setLanguage("fr-FR"); break;
+          case 'german': setLanguage("de-DE"); break;
+          case 'chinese': setLanguage("zh-CN"); break;
+          case 'japanese': setLanguage("ja-JP"); break;
+          case 'arabic': setLanguage("ar-SA"); break;
+          case 'russian': setLanguage("ru-RU"); break;
+          default: setLanguage("");
+        }
+      },
+    },
+  ];
+
   const [language, setLanguage] = useState('');
-  const [openPopup, setOpenPopup] = useState(false); // State for handling popup visibility
-  const { transcript, resetTranscript, listening, browserSupportsSpeechRecognition } = useSpeechRecognition();
+  const [openPopup, setOpenPopup] = useState(false);
+  const { transcript, resetTranscript, listening, browserSupportsSpeechRecognition } = useSpeechRecognition({commands});
   const microphoneRef = useRef(null);
+  const [audioFile, setAudioFile] = useState(null);
+  const [transcriptionResult, setTranscriptionResult] = useState('');
 
-  useEffect(() => {
-    console.log("Transcript:", transcript);
-    console.log("Listening:", listening);
-  }, [transcript, listening]);
+  const handleReset = () => {
+    stopHandle();
+    resetTranscript();
+  };
 
-  // Function to start listening with validation
+  const stopHandle = () => {
+    microphoneRef.current.classList.remove("listening");
+    SpeechRecognition.stopListening();
+  };
+
   const startListening = () => {
     if (!language) {
-      setOpenPopup(true); // Open popup if no language is selected
+      setOpenPopup(true);
     } else {
-      console.log(`Starting speech recognition in language: ${language}`); // Debugging: log language
       microphoneRef.current.classList.add("listening");
       SpeechRecognition.startListening({ continuous: true, language });
     }
   };
 
-  // Function to stop listening
   const stopListening = () => {
     microphoneRef.current.classList.remove("listening");
     SpeechRecognition.stopListening();
-    console.log("Stopped listening");
   };
 
-  // Function to close popup
   const handleClosePopup = () => {
     setOpenPopup(false);
+  };
+
+  const handleAudioFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file && file.type.startsWith('audio/')) {
+      setAudioFile(file);
+      transcribeAudioFile(file); // Call transcribeAudioFile to process the file for transcription
+    } else {
+      alert('Please upload a valid audio file');
+    }
+  };
+
+  // Function to transcribe the uploaded audio file
+  const transcribeAudioFile = (file) => {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    fetch('/api/transcribe', {
+      method: 'POST',
+      body: formData,
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        setTranscriptionResult(data.transcription || "Transcription failed. Please try again.");
+      })
+      .catch((error) => {
+        console.error('Error transcribing audio:', error);
+        setTranscriptionResult("Error processing the audio file.");
+      });
   };
 
   return (
@@ -53,8 +133,8 @@ const SpeechText = () => {
             Miracle Open-Voice
           </Typography>
           <Typography variant="h6" color="inherit" component="div" sx={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)' }}>
-              Speech To Text
-            </Typography>
+            Speech To Text
+          </Typography>
         </Toolbar>
       </AppBar>
 
@@ -67,13 +147,13 @@ const SpeechText = () => {
               <MicIcon
                 ref={microphoneRef}
                 sx={{ fontSize: 40, mb: 2 }}
-                className={listening ? "listening" : ""} // Apply animation class
+                className={listening ? "listening" : ""}
               />
               <Button variant="contained" onClick={startListening} disabled={listening}>
-                {listening ? 'Listening...' : 'Click to Record'}
+                {listening ? 'Listening...' : 'Start'}
               </Button>
               <Button variant="contained" color="secondary" onClick={stopListening} sx={{ mt: 2 }} disabled={!listening}>
-                Stop Recording
+                Stop 
               </Button>
               <Button onClick={resetTranscript} sx={{ mt: 2 }}>
                 Reset
@@ -97,6 +177,12 @@ const SpeechText = () => {
                 <MenuItem value="ar-SA">Arabic</MenuItem>
                 <MenuItem value="ru-RU">Russian</MenuItem>
               </Select>
+              <input
+                type="file"
+                accept="audio/*"
+                onChange={handleAudioFileChange}
+                style={{ marginTop: '16px' }}
+              />
             </Paper>
 
             <Paper sx={{ width: '30%', p: 2, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
@@ -104,6 +190,7 @@ const SpeechText = () => {
                 Speech Output
               </Typography>
               <Box
+                id="transcript-box"
                 sx={{
                   width: '100%',
                   height: '100px',
@@ -111,17 +198,16 @@ const SpeechText = () => {
                   borderRadius: '4px',
                   p: 1,
                   overflow: 'auto',
-                  backgroundColor: '#f9f9f9' // Optional: Add background color for better visibility
+                  backgroundColor: '#f9f9f9'
                 }}
               >
-                {transcript || "Start speaking to see the transcript here..."} {/* This will display the recognized text */}
+                {transcriptionResult || transcript || "Start speaking or upload an audio file..."}
               </Box>
             </Paper>
           </Box>
         )}
       </Box>
 
-      {/* Popup Dialog for language selection */}
       <Dialog open={openPopup} onClose={handleClosePopup}>
         <DialogTitle>Select Language</DialogTitle>
         <DialogContent>

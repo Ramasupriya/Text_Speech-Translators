@@ -1,4 +1,4 @@
-//web speech Api
+
 
 import React, { useState } from "react";
 import AppBar from '@mui/material/AppBar';
@@ -6,6 +6,7 @@ import Box from '@mui/material/Box';
 import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
 import { Button, Select, MenuItem, Paper, TextField } from '@mui/material';
+import { useDropzone } from 'react-dropzone';
 
 const TextSpeech = () => {
   const [text, setText] = useState("");
@@ -23,6 +24,29 @@ const TextSpeech = () => {
     { code: "te-IN", name: "Telugu" },
   ];
 
+   // Language detection functions
+   const isEnglishText = (text) => /^[a-zA-Z0-9\s.,!?]+$/.test(text);
+   const isSpanishText = (text) => /[áéíóúñÁÉÍÓÚÑüÜ]/.test(text);
+   const isFrenchText = (text) => /[éèêëàâîïùûçÉÈÊËÀÂÎÏÙÛÇ]/.test(text);
+   const isGermanText = (text) => /[äöüßÄÖÜẞ]/.test(text);
+   const isChineseText = (text) => /[\u4e00-\u9fff]/.test(text);
+   const isJapaneseText = (text) => /[\u3040-\u30ff\u4e00-\u9faf]/.test(text);
+   const isHindiText = (text) => /[\u0900-\u097F]/.test(text);
+   const isTeluguText = (text) => /[\u0C00-\u0C7F]/.test(text);
+
+   const languageValidators = {
+    "en-US": isEnglishText,
+    "es-ES": isSpanishText,
+    "fr-FR": isFrenchText,
+    "de-DE": isGermanText,
+    "zh-CN": isChineseText,
+    "ja-JP": isJapaneseText,
+    "hi-IN": isHindiText,
+    "te-IN": isTeluguText,
+  };
+
+  
+
   // Function to handle text-to-speech conversion
   const handleSpeech = () => {
     if (text === "") {
@@ -30,10 +54,40 @@ const TextSpeech = () => {
       return;
     }
 
+    // Validate if text matches the selected language
+    const validateText = languageValidators[selectedLanguage];
+    if (validateText && !validateText(text)) {
+      alert("Please select the proper language");
+      return;
+    }
+
+
     const utterance = new SpeechSynthesisUtterance(text); // Create a speech object
     utterance.lang = selectedLanguage; // Set the selected language for speech
     speechSynthesis.speak(utterance); // Invoke the speech synthesis API
   };
+
+  const handleStopSpeech = () => {
+    speechSynthesis.cancel(); // Stop any ongoing speech synthesis
+  };
+
+  // Handle file drop
+  const onDrop = (acceptedFiles) => {
+    const file = acceptedFiles[0];
+    const reader = new FileReader();
+
+    reader.onload = () => {
+      setText(reader.result); // Set file content to text state
+    };
+    reader.readAsText(file);
+  };
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+    accept: ".txt,.doc,.docx,.pdf,.odt", // Accept only text files
+  });
+
+
 
   return (
     <>
@@ -41,7 +95,7 @@ const TextSpeech = () => {
         {/* App Bar */}
         <AppBar position="static">
           <Toolbar variant="dense" sx={{ justifyContent: 'space-between' }}>
-            
+
             <Typography variant="h6" color="inherit" component="div">
               Miracle Open Voice
             </Typography>
@@ -65,7 +119,38 @@ const TextSpeech = () => {
                 alignItems: 'center',
               }}
             >
-          
+
+
+
+              {/* Drag and Drop Area */}
+              <Box
+                {...getRootProps()}
+                sx={{
+                  width: '100%',
+                  height: 100,
+                  border: '2px dashed gray',
+                  borderRadius: 2,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  mb: 3,
+                  bgcolor: isDragActive ? 'primary.light' : 'background.default'
+                }}
+              >
+               {/* Accept only .txt, .doc, .pdf, .odt */}
+  <input
+    {...getInputProps({
+      accept: ".txt,.doc,.docx,.pdf,.odt"
+    })}
+  />
+                {isDragActive ? (
+                  <Typography>Drop the file here...</Typography>
+                ) : (
+                  <Typography>Drag and drop a file here, or click to select a file</Typography>
+                )}
+              </Box>
+
 
               {/* Text Input Field */}
               <TextField
@@ -103,6 +188,16 @@ const TextSpeech = () => {
               >
                 Convert Text to Speech
               </Button>
+
+              <Button
+                variant="outlined"
+                onClick={handleStopSpeech}
+                fullWidth
+              >
+                Stop
+              </Button>
+              
+
             </Paper>
           </Box>
         </Box>
