@@ -65,12 +65,22 @@ const SpeechText = () => {
   const [openPopup, setOpenPopup] = useState(false);
   const { transcript, resetTranscript, listening, browserSupportsSpeechRecognition } = useSpeechRecognition({commands});
   const microphoneRef = useRef(null);
+  const fileInputRef = useRef(null); // Ref for the file input
   const [audioFile, setAudioFile] = useState(null);
   const [transcriptionResult, setTranscriptionResult] = useState('');
+  const [audioURL, setAudioURL] = useState(null);   // State to store the URL for audio preview
 
   const handleReset = () => {
     stopHandle();
     resetTranscript();
+    setAudioFile(null); // Reset the uploaded audio file
+    setAudioURL(null);  // Reset the audio preview URL
+    setTranscriptionResult(''); // Clear the transcription result
+
+    // Reset the file input field
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
   };
 
   const stopHandle = () => {
@@ -96,33 +106,19 @@ const SpeechText = () => {
     setOpenPopup(false);
   };
 
-  const handleAudioFileChange = (e) => {
-    const file = e.target.files[0];
-    if (file && file.type.startsWith('audio/')) {
-      setAudioFile(file);
-      transcribeAudioFile(file); // Call transcribeAudioFile to process the file for transcription
-    } else {
-      alert('Please upload a valid audio file');
+  // Handle file selection
+  const handleFileChange = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      setAudioFile(file); // Store the audio file in state
+      const fileURL = URL.createObjectURL(file); // Generate a URL to preview the audio
+      setAudioURL(fileURL);
     }
   };
 
-  // Function to transcribe the uploaded audio file
-  const transcribeAudioFile = (file) => {
-    const formData = new FormData();
-    formData.append("file", file);
-
-    fetch('/api/transcribe', {
-      method: 'POST',
-      body: formData,
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        setTranscriptionResult(data.transcription || "Transcription failed. Please try again.");
-      })
-      .catch((error) => {
-        console.error('Error transcribing audio:', error);
-        setTranscriptionResult("Error processing the audio file.");
-      });
+  // Handle file upload
+  const handleUploadClick = () => {
+    fileInputRef.current.click(); // Trigger the file input when the button is clicked
   };
 
   return (
@@ -155,7 +151,7 @@ const SpeechText = () => {
               <Button variant="contained" color="secondary" onClick={stopListening} sx={{ mt: 2 }} disabled={!listening}>
                 Stop 
               </Button>
-              <Button onClick={resetTranscript} sx={{ mt: 2 }}>
+              <Button onClick={handleReset} sx={{ mt: 2 }}>
                 Reset
               </Button>
             </Paper>
@@ -177,12 +173,28 @@ const SpeechText = () => {
                 <MenuItem value="ar-SA">Arabic</MenuItem>
                 <MenuItem value="ru-RU">Russian</MenuItem>
               </Select>
-              <input
-                type="file"
-                accept="audio/*"
-                onChange={handleAudioFileChange}
-                style={{ marginTop: '16px' }}
-              />
+
+              {/* Audio upload section */}
+              <div style={{ marginLeft: '40px', marginTop: '20px' }}>
+                <button onClick={handleUploadClick}>Upload Audio</button>
+                <input
+                  type="file"
+                  ref={fileInputRef} // Assign the ref here
+                  id="audioFileInput"
+                  accept="audio/*"
+                  style={{ display: 'none' }}
+                  onChange={handleFileChange}
+                />
+
+                {audioFile && (
+                  <div>
+                    <audio controls>
+                      <source src={audioURL} type="audio/mp3" />
+                      Your browser does not support the audio element.
+                    </audio>
+                  </div>
+                )}
+              </div>
             </Paper>
 
             <Paper sx={{ width: '30%', p: 2, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>

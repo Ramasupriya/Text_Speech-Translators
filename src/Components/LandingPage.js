@@ -15,6 +15,14 @@ import { faFileLines } from '@fortawesome/free-regular-svg-icons';
 const LandingPage = () => {
   const navigate = useNavigate();
 
+  const handleLogout = () => {
+    alert("Logged out successfully!");
+    localStorage.removeItem('oauth2');
+
+    navigate('/');
+    // Add any logout logic here, such as clearing tokens or redirecting
+  };
+
   const handleSpeechToTextClick = () => {
     navigate('/speechtext');
   };
@@ -41,12 +49,25 @@ const LandingPage = () => {
             sx={{ height: '75px', width: '75px', m: 1, mr: 2 }}
           />
           <img src="https://firebasestorage.googleapis.com/v0/b/me-portal.appspot.com/o/Miraclelogo%2Fmiracle%20white-light.png?alt=media&token=cf3624d6-aa0f-44f5-9779-6f7604a0c9e4" alt="Miracle Logo" />
+          <Box sx={{ flexGrow: 1 }} />
+
+        {/* Logout Button */}
+        <Button
+          variant="contained"
+          color="error"
+          onClick={handleLogout}
+          sx={{ textTransform: "none" }} // Prevent all-caps text
+        >
+          Logout
+        </Button>
+
         </Toolbar>
       </AppBar>
 
-      <div
-        style={{
-          height: '100vh',
+      <Box
+        sx={{
+          height: `calc(100vh - 95px)`,
+          border: '2px solid red',
           display: 'flex',
           justifyContent: 'center',
           background: 'static',
@@ -165,7 +186,7 @@ const LandingPage = () => {
             </Grid>
           </Grid>
         </Box>
-      </div>
+      </Box>
     </Box>
   );
 };

@@ -17,14 +17,14 @@ function TextTranslation() {
   const [targetLanguage, setTargetLanguage] = useState('id'); // default target language
   const [sourceFile, setSourceFile] = useState(null);
 
-    // Handle file upload and read file content
-    const handleFileUpload = (event) => {
-      const file = event.target.files[0];
-      setSourceFile(file);
-      const reader = new FileReader();
-      reader.onload = (e) => setInputText(e.target.result);
-      reader.readAsText(file);
-    };
+  // Handle file upload and read file content
+  const handleFileUpload = (event) => {
+    const file = event.target.files[0];
+    setSourceFile(file);
+    const reader = new FileReader();
+    reader.onload = (e) => setInputText(e.target.result);
+    reader.readAsText(file);
+  };
 
   const translateText = async () => {
     const data = new FormData();
@@ -56,8 +56,8 @@ function TextTranslation() {
     }
   };
 
-   // Handle download of translated text
-   const handleDownload = () => {
+  // Handle download of translated text
+  const handleDownload = () => {
     const blob = new Blob([translatedText], { type: 'text/plain' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
@@ -94,7 +94,7 @@ function TextTranslation() {
       </AppBar>
 
       <Box sx={{ padding: 3 }}>
-        <Grid container spacing={4} alignItems="center" margin left="50" >
+        <Grid container spacing={4} alignItems="center" margin left="50">
           {/* Source Language Selection and Input Text */}
           <Grid item xs={5}>
             <TextField
@@ -111,7 +111,7 @@ function TextTranslation() {
               ))}
             </TextField>
 
-            <Button variant="contained" component="label" sx={{marginLeft:1, marginBottom: 1, width: '30%' }}>
+            <Button variant="contained" component="label" sx={{ marginLeft: 1, marginBottom: 1, width: '30%' }}>
               Upload File
               <input type="file" hidden onChange={handleFileUpload} />
             </Button>
@@ -161,7 +161,7 @@ function TextTranslation() {
               }}
             />
 
-<Button
+            <Button
               variant="contained"
               color="secondary"
               onClick={handleDownload}
